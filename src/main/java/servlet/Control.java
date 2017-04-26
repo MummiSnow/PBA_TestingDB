@@ -1,5 +1,6 @@
 package servlet;
 
+import com.mysql.cj.jdbc.MysqlDataSource;
 import mapper.InvoiceMapper;
 import mapper.UserMapper;
 import entity.Bottom;
@@ -15,7 +16,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import mapper.CakeMapper;
+import mapper.CakeMapperNEW;
 
 @WebServlet(name = "Control", urlPatterns =
 {
@@ -25,14 +26,19 @@ public class Control extends HttpServlet
 {
     UserMapper um = new UserMapper();
     InvoiceMapper im = new InvoiceMapper();
-    CakeMapper cm;
+    CakeMapperNEW cmn;
     
     List<Bottom> bottoms;
     List<Top> tops;
     
     public Control()
     {
-        cm = new CakeMapper();
+        MysqlDataSource datasource = new MysqlDataSource();
+        datasource.setURL("jdbc:mysql://localhost:3306/cupcakeshoptest");
+        datasource.setUser("root");
+        datasource.setPassword("root");
+        
+        cmn = new CakeMapperNEW(datasource);
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -97,8 +103,8 @@ public class Control extends HttpServlet
 
     private void populateProdLists(HttpSession session)
     {
-        tops = cm.getAllTops();
-        bottoms = cm.getAllBottoms();
+        tops = cmn.getAllTops();
+        bottoms = cmn.getAllBottoms();
         session.setAttribute("toppings", tops);
         session.setAttribute("bottoms", bottoms);
     }
@@ -110,9 +116,9 @@ public class Control extends HttpServlet
         int bottomId = Integer.parseInt(request.getParameter("bottom"));
         int qty = Integer.parseInt(request.getParameter("qty"));
 
-        Bottom b = cm.getBottom(bottomId);
-        Top t = cm.getTop(toppingId);
-        Cake cc = cm.createCake(b, t);
+        Bottom b = cmn.getBottom(bottomId);
+        Top t = cmn.getTop(toppingId);
+        Cake cc = cmn.createCake(b, t);
         im.addInvoiceLine(invoice.getId(), cc.getId(), qty);
         //reload the invoice
         invoice = im.getInvoiceById(invoice.getId());
